@@ -91,6 +91,12 @@ const server = http.createServer(async (req, res) => {
       return res.end(html);
     }
 
+    if (req.method === 'GET' && url.pathname === '/settings') {
+      const html = fs.readFileSync(path.join(__dirname, 'static', 'settings.html'), 'utf8');
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      return res.end(html);
+    }
+
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Not found');
   } catch (error) {

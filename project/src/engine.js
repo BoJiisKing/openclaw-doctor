@@ -68,17 +68,27 @@ export function generateSupportPlan(checkin, risk) {
 
   if (checkin.mode === 'anxiety') {
     message = '先不用逼自己立刻平静下来。把注意力放回眼前，先让身体稍微稳定一点，再决定下一步。';
+    actions.unshift('把当前最明显的触发因素记下来，哪怕只记一个词也行');
   }
 
   if (checkin.mode === 'bipolar') {
     message = '现在更重要的是稳住节律，尤其是睡眠、刺激量和冲动决策。先别把状态好的冲劲当成必须立刻行动的理由。';
+    actions.unshift('今天尽量不要做重大消费、重大承诺或突然增加很多社交');
+  }
+
+  if (checkin.mode === 'depression') {
+    actions.unshift('如果今天很难启动，就只给自己定一个最小任务：起床、洗漱、吃点东西，先完成一个就够');
   }
 
   return {
     tone: 'gentle_structured',
     message,
-    actions: actions.slice(0, 3)
+    actions: unique(actions).slice(0, 4)
   };
+}
+
+function unique(arr) {
+  return [...new Set(arr)];
 }
 
 export function summarizeVisit(checkins) {

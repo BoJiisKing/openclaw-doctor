@@ -79,6 +79,12 @@ npm start
 
 当前是本地单机原型，适合直接在开发机运行：
 
+### 当前页面
+
+- `/` 首页仪表盘
+- `/crisis` 危机支持页
+- `/settings` 设置页雏形
+
 ```bash
 cd project
 npm start
