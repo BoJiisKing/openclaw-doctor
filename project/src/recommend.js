@@ -1,34 +1,36 @@
-export function recommendResources(dashboard, resources) {
-  const picks = [];
-  const mode = dashboard.userMode;
-  const risk = dashboard.risk.riskLevel;
-  const latest = dashboard.latestCheckin || {};
+function scoreResource(item, { userMode, risk, latestCheckin }) {
+  let score = 0;
+  const title = `${item.title} ${item.description || ''}`;
 
-  if (mode === 'depression') {
-    picks.push({ title: '抑郁障碍（抑郁症）', url: 'https://www.who.int/zh/news-room/fact-sheets/detail/depression', reason: '当前模式为抑郁，适合先看权威总览。' });
-  }
-  if (mode === 'bipolar') {
-    picks.push({ title: '双相情感障碍（WHO 中文）', url: 'https://www.who.int/zh/news-room/fact-sheets/detail/bipolar-disorder', reason: '当前模式为双相，建议先看基础科普。' });
-  }
-  if (mode === 'anxiety' || latest.anxiety >= 6) {
-    picks.push({ title: '中国的精神健康（WHO 中文）', url: 'https://www.who.int/china/zh/health-topics/mental-health', reason: '当前焦虑偏高，先看公开、低风险的基础资料。' });
-  }
-  if ((latest.sleepHours ?? 8) <= 5) {
-    picks.push({ title: '精神障碍（WHO 中文）', url: 'https://www.who.int/zh/news-room/fact-sheets/detail/mental-disorders', reason: '最近睡眠偏少，先补充整体理解与求助意识。' });
-  }
-  if (risk === 'high') {
-    picks.unshift({ title: '危机时优先现实求助', url: '/crisis', reason: '当前是高风险状态，优先看危机支持页，而不是继续刷资料。' });
-  }
+  if (item.readingLoad === 'light') score += 3;
+  if (item.readingLoad === 'medium') score += 1;
+  if (risk?.riskLevel === 'high' && item.readingLoad === 'heavy') score -= 4;
+  if (risk?.riskLevel === 'medium' && item.readingLoad === 'heavy') score -= 2;
 
-  for (const item of resources.selfHelp || []) {
-    if (picks.length >= 4) break;
-    picks.push({ title: item.title, url: item.url, reason: '补充阅读材料。' });
-  }
+  if (userMode === 'bipolar' && /双相|bipolar/i.test(title)) score += 4;
+  if (userMode === 'depression' && /抑郁|depression/i.test(title)) score += 4;
+  if (userMode === 'anxiety' && /焦虑|mental health|精神健康/i.test(title)) score += 3;
+  if ((latestCheckin?.sleepHours || 0) <= 5 && /精神障碍|mental disorders|sleep|节律/i.test(title)) score += 2;
 
-  const seen = new Set();
-  return picks.filter(item => {
-    if (seen.has(item.url)) return false;
-    seen.add(item.url);
-    return true;
-  }).slice(0, 4);
+  return score;
+}
+
+export function recommendResources(context, groups) {
+  const all = [...(groups.zh || []), ...(groups.global || []), ...(groups.selfHelp || [])];
+  return all
+    .map(item => ({ ...item, _score: scoreResource(item, context) }))
+    .sort((a, b) => b._score - a._score)
+    .slice(0, 4)
+    .map(({ _score, ...item }) => ({
+      ...item,
+      reason: buildReason(item, context)
+    }));
+}
+
+function buildReason(item, { userMode, risk, latestCheckin }) {
+  if (risk?.riskLevel === 'high') return '当前风险较高，先看最短、最基础、最易进入的支持信息。';
+  if (userMode === 'bipolar' && /双相|bipolar/i.test(item.title)) return '当前模式为双相，建议先看基础科普。';
+  if (userMode === 'depression' && /抑郁|depression/i.test(item.title)) return '当前模式为抑郁，建议先看贴近当前处境的基础阅读。';
+  if ((latestCheckin?.sleepHours || 0) <= 5) return '最近睡眠偏少，先补充整体理解与求助意识。';
+  return item.readingLoad === 'light' ? '这条内容阅读负担较轻，适合先开始。' : '补充阅读材料。';
 }

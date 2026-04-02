@@ -7,7 +7,8 @@ import { buildDailyInsight } from './daily.js';
 import { buildEditorialCards } from './editorial.js';
 import { buildFocusMode } from './simplicity.js';
 import { buildRecoverySignals } from './recovery.js';
-import { formatMode } from './labels.js';
+import { formatMode, formatRisk, formatSelfHarm } from './labels.js';
+import { attachReadingLoad } from './resource-load.js';
 
 export function buildDashboard(data) {
   const defaultMode = data.settings?.defaultMode || data.user?.mode || 'depression';
@@ -15,8 +16,9 @@ export function buildDashboard(data) {
   const risk = evaluateRisk(latest);
   const support = generateSupportPlan(latest, risk);
   const summary = summarizeVisit(data.checkins || [latest]);
+  const resources = attachReadingLoad(trustedResources);
   const dailyInsight = buildDailyInsight({ userMode: latest.mode, risk, latestCheckin: latest });
-  const recommendedResources = recommendResources({ userMode: latest.mode, risk, latestCheckin: latest }, trustedResources);
+  const recommendedResources = recommendResources({ userMode: latest.mode, risk, latestCheckin: latest }, resources);
   const focusMode = buildFocusMode({ risk, dailyInsight, support, recommendedResources });
   const recoverySignals = buildRecoverySignals({ latestCheckin: latest, recentCheckins: data.checkins || [], summary });
 
@@ -28,13 +30,18 @@ export function buildDashboard(data) {
     modeTitle: modeCopy[latest.mode]?.title,
     modeIntro: modeCopy[latest.mode]?.intro,
     risk,
+    riskLabel: formatRisk(risk.riskLevel),
     crisisMessage: crisisCopy[risk.riskLevel],
     support,
     summary,
     medications: data.medications,
     settings: data.settings || {},
     latestCheckin: latest,
-    recentCheckins: data.checkins?.slice(0, 10) || [],
+    recentCheckins: (data.checkins?.slice(0, 10) || []).map(item => ({
+      ...item,
+      modeLabel: formatMode(item.mode),
+      selfHarmLabel: formatSelfHarm(item.selfHarmThoughts)
+    })),
     trends: buildTrends(data.checkins || []),
     statusCard: buildStatusCard(risk, latest),
     dailyInsight,
