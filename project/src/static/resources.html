@@ -30,12 +30,28 @@
       const data = await fetch('/api/resources').then(r => r.json());
       const renderList = (items) => `<ul>${items.map(i => `<li><a href="${i.url}" target="_blank" rel="noreferrer">${i.title}</a>：${i.note}</li>`).join('')}</ul>`;
       document.getElementById('resourcesApp').innerHTML = `
+        <h2>按模式先看什么</h2>
+        <ul>
+          <li><strong>抑郁：</strong>先看 WHO 中文抑郁资料，再看低负担自助材料。</li>
+          <li><strong>焦虑：</strong>先看中国精神健康 / 总览类资料，再决定是否继续深入阅读。</li>
+          <li><strong>双相：</strong>先看 WHO 中文双相资料，优先理解节律、睡眠和求助时机。</li>
+          <li><strong>高风险：</strong>先去 <a href="/crisis">危机支持页</a>，不要把读资料当成首要动作。</li>
+        </ul>
         <h2>中文资料</h2>
         ${renderList(data.zh)}
         <h2>权威公开资料</h2>
         ${renderList(data.global)}
         <h2>可作为补充阅读的自助资料</h2>
         ${renderList(data.selfHelp)}
+        <h2>建议自行补充到本地的危机资源</h2>
+        <ul>${data.crisisTemplate.map(x => `<li>${x}</li>`).join('')}</ul>
+      `;
+    }
+    main();
+  </script>
+</body>
+</html>
+)}
         <h2>建议自行补充到本地的危机资源</h2>
         <ul>${data.crisisTemplate.map(x => `<li>${x}</li>`).join('')}</ul>
       `;
