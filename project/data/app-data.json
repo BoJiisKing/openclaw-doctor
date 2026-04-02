@@ -53,5 +53,13 @@
       "medicationMisses7d": 2,
       "notes": "今天很难起床，觉得没有希望，但还没有具体计划。"
     }
-  ]
+  ],
+  "settings": {
+    "defaultMode": "depression",
+    "reminderTimes": [
+      "08:00",
+      "21:00"
+    ],
+    "emergencyContact": ""
+  }
 }

@@ -84,6 +84,7 @@ npm start
 - `/` 首页仪表盘
 - `/crisis` 危机支持页
 - `/settings` 设置页（支持保存默认模式、提醒时间、紧急联系人、导出数据、重置数据）
+- `/resources` 知识与求助资源页（基于 WHO / NIMH / NHS 等公开资料方向整理）
 
 ```bash
 cd project

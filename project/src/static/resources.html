@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>知识与求助资源 - Mind Harbor</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin:0; background:#f8fafc; color:#1f2937; }
+    .wrap { max-width: 980px; margin:0 auto; padding:24px; }
+    .card { background:white; border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:0 4px 20px rgba(0,0,0,.05); }
+    h1,h2 { margin:0 0 12px; }
+    ul { padding-left: 20px; }
+    a { color:#2563eb; text-decoration:none; }
+    .muted { color:#6b7280; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>知识与求助资源</h1>
+      <p class="muted">这里放的是公开、权威、适合作为补充阅读的资料。它们用于帮助理解，不替代个体化诊疗建议。</p>
+      <p><a href="/">返回首页</a></p>
+    </div>
+
+    <div class="card" id="resourcesApp">加载中...</div>
+  </div>
+
+  <script>
+    async function main() {
+      const data = await fetch('/api/resources').then(r => r.json());
+      const renderList = (items) => `<ul>${items.map(i => `<li><a href="${i.url}" target="_blank" rel="noreferrer">${i.title}</a>：${i.note}</li>`).join('')}</ul>`;
+      document.getElementById('resourcesApp').innerHTML = `
+        <h2>权威公开资料</h2>
+        ${renderList(data.global)}
+        <h2>可作为补充阅读的自助资料</h2>
+        ${renderList(data.selfHelp)}
+        <h2>建议自行补充到本地的危机资源</h2>
+        <ul>${data.crisisTemplate.map(x => `<li>${x}</li>`).join('')}</ul>
+      `;
+    }
+    main();
+  </script>
+</body>
+</html>
