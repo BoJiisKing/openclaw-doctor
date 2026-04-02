@@ -107,6 +107,7 @@
       <div>
         <div class="card" id="dashboard"></div>
         <div class="card" id="settingsSummary"></div>
+        <div class="card" id="focusMode"></div>
         <div class="card" id="dailyInsight"></div>
         <div class="card" id="editorialFeed"></div>
         <div class="card" id="recommendedResources"></div>
@@ -216,6 +217,9 @@
 
     async function loadDashboard() {
       const data = await fetchJson('/api/dashboard');
+      const defaultMode = data.settings?.defaultMode || data.userMode || 'depression';
+      const modeInput = document.querySelector('#checkinForm [name="mode"]');
+      if (modeInput && !document.querySelector('#checkinForm [name="editingId"]').value) modeInput.value = defaultMode;
       latestMeds = data.medications || [];
       const riskCls = `risk-${data.risk.riskLevel}`;
       const crisisLink = data.risk.riskLevel === 'high' ? '<p><a class="linkbtn" href="/crisis">立即查看危机支持</a></p>' : '';
@@ -254,6 +258,12 @@
         <p><strong>提醒时间：</strong>${esc((data.settings.reminderTimes || []).join(', ') || '未设置')}</p>
         <p><strong>紧急联系人：</strong>${esc(data.settings.emergencyContact || '未设置')}</p>
       `;
+
+      document.getElementById('focusMode').innerHTML = data.focusMode?.enabled ? `
+        <h2>${esc(data.focusMode.title)}</h2>
+        <p>${esc(data.focusMode.body)}</p>
+        <ul>${(data.focusMode.actions || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+      ` : '';
 
       document.getElementById('dailyInsight').innerHTML = `
         <h2>${esc(data.dailyInsight.title)}</h2>
