@@ -9,17 +9,19 @@ import { buildFocusMode } from './simplicity.js';
 import { buildRecoverySignals } from './recovery.js';
 
 export function buildDashboard(data) {
-  const latest = data.checkins?.[0] || fallbackCheckin(data.settings?.defaultMode || data.user?.mode || 'depression');
+  const defaultMode = data.settings?.defaultMode || data.user?.mode || 'depression';
+  const latest = data.checkins?.[0] || fallbackCheckin(defaultMode);
   const risk = evaluateRisk(latest);
   const support = generateSupportPlan(latest, risk);
   const summary = summarizeVisit(data.checkins || [latest]);
   const dailyInsight = buildDailyInsight({ userMode: latest.mode, risk, latestCheckin: latest });
   const recommendedResources = recommendResources({ userMode: latest.mode, risk, latestCheckin: latest }, trustedResources);
   const focusMode = buildFocusMode({ risk, dailyInsight, support, recommendedResources });
-  const recoverySignals = buildRecoverySignals({ latestCheckin: latest, recentCheckins: data.checkins || [] });
+  const recoverySignals = buildRecoverySignals({ latestCheckin: latest, recentCheckins: data.checkins || [], summary });
 
   return {
     userMode: latest.mode,
+    defaultMode,
     modeTitle: modeCopy[latest.mode]?.title,
     modeIntro: modeCopy[latest.mode]?.intro,
     risk,

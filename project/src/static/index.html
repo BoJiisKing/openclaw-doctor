@@ -109,8 +109,8 @@
         <div class="card" id="settingsSummary"></div>
         <div class="card" id="focusMode"></div>
         <div class="card" id="dailyInsight"></div>
-        <div class="card" id="editorialFeed"></div>
         <div class="card" id="recoverySignals"></div>
+        <div class="card" id="editorialFeed"></div>
         <div class="card" id="recommendedResources"></div>
         <div class="card" id="trends"></div>
         <div class="card">
@@ -227,6 +227,7 @@
       document.getElementById('dashboard').innerHTML = `
         <h2>${esc(data.modeTitle || '支持模式')}</h2>
         <p>${esc(data.modeIntro || '')}</p>
+        <p class="small muted">当前最近记录模式：${esc(data.userMode)} ｜ 表单默认模式：${esc(data.defaultMode)}</p>
         <div class="card" style="padding:12px; background:#f8fafc; box-shadow:none; margin-top:12px;">
           <strong>${esc(data.statusCard.title)}</strong>
           <p class="small muted" style="margin:8px 0 0;">${esc(data.statusCard.body)}</p>
@@ -300,7 +301,7 @@
           <div class="chartlabel">${esc(label)}</div>
         </div>
       `).join('');
-      document.getElementById('trends').innerHTML = `
+      document.getElementById('trends').innerHTML = data.focusMode?.enabled ? '' : `
         <h2>近 7 条趋势</h2>
         <p class="muted small">蓝色=心情，橙色=焦虑，绿色=睡眠时长</p>
         <div class="chart">${bars || '<p class="muted">暂无趋势数据</p>'}</div>

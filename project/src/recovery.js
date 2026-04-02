@@ -1,12 +1,14 @@
-export function buildRecoverySignals({ latestCheckin, recentCheckins = [] }) {
+export function buildRecoverySignals({ latestCheckin, recentCheckins = [], summary }) {
   const prev = recentCheckins[1];
   const items = [];
 
   if (latestCheckin.sleepHours >= 6) {
-    items.push('最近一次记录里，睡眠达到 6 小时以上，这通常是值得保住的基础。');
+    items.push('最新一次记录里，睡眠达到 6 小时以上，这通常是值得保住的基础。');
   }
   if (latestCheckin.medicationMisses7d === 0) {
-    items.push('最近 7 天记录到的漏药次数为 0，说明治疗节律有在被守住。');
+    items.push('最新一次记录显示近 7 天漏药次数为 0，说明最近的治疗节律有在被守住。');
+  } else if ((summary?.medicationMissesReported || 0) <= 1) {
+    items.push('近期汇总中的漏药次数不高，说明服药节律整体还在努力维持。');
   }
   if (prev) {
     if (latestCheckin.anxiety < prev.anxiety) {
