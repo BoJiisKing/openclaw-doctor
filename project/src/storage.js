@@ -100,7 +100,10 @@ export function updateMedication(id, patch) {
   writeData(data);
   return data;
 }
-...patch };
+
+export function updateSettings(patch) {
+  const data = readData();
+  data.settings = { ...(data.settings || {}), ...patch };
   if (patch.defaultMode) {
     data.user = { ...(data.user || {}), mode: patch.defaultMode };
   }
@@ -109,6 +112,6 @@ export function updateMedication(id, patch) {
 }
 
 export function resetAllData() {
-  writeData(defaultData);
+  writeData(JSON.parse(JSON.stringify(defaultData)));
   return readData();
 }
