@@ -1,4 +1,26 @@
 export const trustedResources = {
+  zh: [
+    {
+      title: '双相情感障碍（WHO 中文）',
+      url: 'https://www.who.int/zh/news-room/fact-sheets/detail/bipolar-disorder',
+      note: 'WHO 中文双相障碍资料。'
+    },
+    {
+      title: '抑郁障碍（抑郁症）（WHO 中文）',
+      url: 'https://www.who.int/zh/news-room/fact-sheets/detail/depression',
+      note: 'WHO 中文抑郁资料。'
+    },
+    {
+      title: '精神障碍（WHO 中文）',
+      url: 'https://www.who.int/zh/news-room/fact-sheets/detail/mental-disorders',
+      note: 'WHO 中文精神障碍总览。'
+    },
+    {
+      title: '中国的精神健康（WHO）',
+      url: 'https://www.who.int/china/zh/health-topics/mental-health',
+      note: 'WHO 关于中国精神健康议题的公开页面。'
+    }
+  ],
   global: [
     {
       title: 'WHO: Mental disorders',

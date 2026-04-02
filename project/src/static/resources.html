@@ -30,6 +30,8 @@
       const data = await fetch('/api/resources').then(r => r.json());
       const renderList = (items) => `<ul>${items.map(i => `<li><a href="${i.url}" target="_blank" rel="noreferrer">${i.title}</a>：${i.note}</li>`).join('')}</ul>`;
       document.getElementById('resourcesApp').innerHTML = `
+        <h2>中文资料</h2>
+        ${renderList(data.zh)}
         <h2>权威公开资料</h2>
         ${renderList(data.global)}
         <h2>可作为补充阅读的自助资料</h2>

@@ -202,6 +202,11 @@
         <p><strong>紧急联系人：</strong>${esc(data.settings.emergencyContact || '未设置')}</p>
       `;
 
+      document.getElementById('recommendedResources').innerHTML = `
+        <h2>根据当前状态推荐阅读</h2>
+        <ul>${(data.recommendedResources || []).map(item => `<li><a href="${esc(item.url)}" target="_blank" rel="noreferrer">${esc(item.title)}</a>：${esc(item.reason)}</li>`).join('')}</ul>
+      `;
+
       const bars = data.trends.labels.map((label, i) => `
         <div class="barwrap">
           <div class="bar" style="height:${(data.trends.mood[i] || 0) * 10}px" title="心情 ${data.trends.mood[i] || 0}"></div>
