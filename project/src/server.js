@@ -7,6 +7,7 @@ import { readData, addCheckin, addMedication, ensureDataFile, deleteMedication, 
 import { readJsonBody, sendJson } from './http.js';
 import { normalizeCheckin, normalizeMedication } from './validate.js';
 import { buildVisitSummaryText } from './summary.js';
+import { filterCheckinsByDays } from './filter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
