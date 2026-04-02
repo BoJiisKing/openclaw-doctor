@@ -194,6 +194,13 @@
         <p class="small muted">${esc(data.summary.clinicianPrompt)}</p>
       `;
 
+      document.getElementById('settingsSummary').innerHTML = `
+        <h2>当前设置摘要</h2>
+        <p><strong>默认模式：</strong>${esc(data.settings.defaultMode || data.userMode)}</p>
+        <p><strong>提醒时间：</strong>${esc((data.settings.reminderTimes || []).join(', ') || '未设置')}</p>
+        <p><strong>紧急联系人：</strong>${esc(data.settings.emergencyContact || '未设置')}</p>
+      `;
+
       const bars = data.trends.labels.map((label, i) => `
         <div class="barwrap">
           <div class="bar" style="height:${(data.trends.mood[i] || 0) * 10}px" title="心情 ${data.trends.mood[i] || 0}"></div>

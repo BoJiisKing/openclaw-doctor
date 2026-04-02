@@ -44,7 +44,31 @@ export function ensureDataFile() {
 
 export function readData() {
   ensureDataFile();
-  return JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+  const data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+  let changed = false;
+
+  if (!data.user) {
+    data.user = JSON.parse(JSON.stringify(defaultData.user));
+    changed = true;
+  }
+
+  if (!data.settings) {
+    data.settings = JSON.parse(JSON.stringify(defaultData.settings));
+    changed = true;
+  }
+
+  if (!Array.isArray(data.medications)) {
+    data.medications = [];
+    changed = true;
+  }
+
+  if (!Array.isArray(data.checkins)) {
+    data.checkins = [];
+    changed = true;
+  }
+
+  if (changed) writeData(data);
+  return data;
 }
 
 export function writeData(data) {

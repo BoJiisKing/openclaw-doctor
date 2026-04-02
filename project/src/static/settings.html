@@ -69,7 +69,7 @@
       document.getElementById('settingsPreview').textContent = JSON.stringify(data, null, 2);
       const form = document.getElementById('settingsForm');
       form.elements.defaultMode.value = data.defaultMode || 'depression';
-      form.elements.reminderTimes.value = (data.reminderTimes || []).join(', ');
+      form.elements.reminderTimes.value = Array.isArray(data.reminderTimes) ? data.reminderTimes.join(', ') : (data.reminderTimes || '');
       form.elements.emergencyContact.value = data.emergencyContact || '';
     }
 
