@@ -7,6 +7,7 @@ import { buildDailyInsight } from './daily.js';
 import { buildEditorialCards } from './editorial.js';
 import { buildFocusMode } from './simplicity.js';
 import { buildRecoverySignals } from './recovery.js';
+import { formatMode } from './labels.js';
 
 export function buildDashboard(data) {
   const defaultMode = data.settings?.defaultMode || data.user?.mode || 'depression';
@@ -21,7 +22,9 @@ export function buildDashboard(data) {
 
   return {
     userMode: latest.mode,
+    userModeLabel: formatMode(latest.mode),
     defaultMode,
+    defaultModeLabel: formatMode(defaultMode),
     modeTitle: modeCopy[latest.mode]?.title,
     modeIntro: modeCopy[latest.mode]?.intro,
     risk,

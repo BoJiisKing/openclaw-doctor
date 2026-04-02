@@ -227,7 +227,7 @@
       document.getElementById('dashboard').innerHTML = `
         <h2>${esc(data.modeTitle || '支持模式')}</h2>
         <p>${esc(data.modeIntro || '')}</p>
-        <p class="small muted">当前最近记录模式：${esc(data.userMode)} ｜ 表单默认模式：${esc(data.defaultMode)}</p>
+        <p class="small muted">当前最近记录模式：${esc(data.userModeLabel)} ｜ 表单默认模式：${esc(data.defaultModeLabel)}</p>
         <div class="card" style="padding:12px; background:#f8fafc; box-shadow:none; margin-top:12px;">
           <strong>${esc(data.statusCard.title)}</strong>
           <p class="small muted" style="margin:8px 0 0;">${esc(data.statusCard.body)}</p>
@@ -272,7 +272,7 @@
         <p>${esc(data.dailyInsight.body)}</p>
       `;
 
-      document.getElementById('editorialFeed').innerHTML = `
+      document.getElementById('editorialFeed').innerHTML = data.focusMode?.hideReadingExtras ? '' : `
         <h2>今日陪伴与阅读</h2>
         <div class="editorial">${(data.editorialCards || []).map(card => `
           <article class="story">
@@ -288,9 +288,10 @@
         <ul>${(data.recoverySignals.items || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
       `;
 
+      const visibleResources = data.focusMode?.hideReadingExtras ? (data.recommendedResources || []).slice(0, 1) : (data.recommendedResources || []);
       document.getElementById('recommendedResources').innerHTML = `
-        <h2>根据当前状态推荐阅读</h2>
-        <ul>${(data.recommendedResources || []).map(item => `<li><a href="${esc(item.url)}" target="_blank" rel="noreferrer">${esc(item.title)}</a>：${esc(item.reason)}</li>`).join('')}</ul>
+        <h2>${data.focusMode?.hideReadingExtras ? '如果还有余力，只看这一条' : '根据当前状态推荐阅读'}</h2>
+        <ul>${visibleResources.map(item => `<li><a href="${esc(item.url)}" target="_blank" rel="noreferrer">${esc(item.title)}</a>：${esc(item.reason)}</li>`).join('')}</ul>
       `;
 
       const bars = data.trends.labels.map((label, i) => `
@@ -301,7 +302,7 @@
           <div class="chartlabel">${esc(label)}</div>
         </div>
       `).join('');
-      document.getElementById('trends').innerHTML = data.focusMode?.enabled ? '' : `
+      document.getElementById('trends').innerHTML = data.focusMode?.hideTrends ? '' : `
         <h2>近 7 条趋势</h2>
         <p class="muted small">蓝色=心情，橙色=焦虑，绿色=睡眠时长</p>
         <div class="chart">${bars || '<p class="muted">暂无趋势数据</p>'}</div>
