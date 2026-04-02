@@ -9,6 +9,11 @@ const dataFile = path.join(dataDir, 'app-data.json');
 
 const defaultData = {
   user: { id: 'u_001', mode: 'depression', timezone: 'Asia/Shanghai' },
+  settings: {
+    defaultMode: 'depression',
+    reminderTimes: ['08:00', '21:00'],
+    emergencyContact: ''
+  },
   medications: [
     { id: 'm1', name: '示例药物A', schedule: ['08:00'], notes: '遵医嘱服用' },
     { id: 'm2', name: '示例药物B', schedule: ['21:00'], notes: '睡前服用，遵医嘱' }
@@ -94,4 +99,16 @@ export function updateMedication(id, patch) {
   data.medications = data.medications.map(item => item.id === id ? { ...item, ...patch } : item);
   writeData(data);
   return data;
+}
+...patch };
+  if (patch.defaultMode) {
+    data.user = { ...(data.user || {}), mode: patch.defaultMode };
+  }
+  writeData(data);
+  return data;
+}
+
+export function resetAllData() {
+  writeData(defaultData);
+  return readData();
 }

@@ -17,6 +17,7 @@ export function buildDashboard(data) {
     support,
     summary,
     medications: data.medications,
+    settings: data.settings || {},
     latestCheckin: latest,
     recentCheckins: data.checkins?.slice(0, 10) || [],
     trends: buildTrends(data.checkins || []),

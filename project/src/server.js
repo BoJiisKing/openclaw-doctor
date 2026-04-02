@@ -3,11 +3,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDashboard } from './app.js';
-import { readData, addCheckin, addMedication, ensureDataFile, deleteMedication, deleteCheckin, updateCheckin, updateMedication } from './storage.js';
+import { readData, addCheckin, addMedication, ensureDataFile, deleteMedication, deleteCheckin, updateCheckin, updateMedication, updateSettings, resetAllData } from './storage.js';
 import { readJsonBody, sendJson } from './http.js';
 import { normalizeCheckin, normalizeMedication } from './validate.js';
 import { buildVisitSummaryText } from './summary.js';
 import { filterCheckinsByDays } from './filter.js';
+import { normalizeSettings } from './settings.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,6 +28,28 @@ const server = http.createServer(async (req, res) => {
       const days = Number(url.searchParams.get('days') || 0);
       const list = days > 0 ? filterCheckinsByDays(data.checkins || [], days) : (data.checkins || []);
       return sendJson(res, 200, list);
+    }
+
+    if (req.method === 'GET' && url.pathname === '/api/settings') {
+      const data = readData();
+      return sendJson(res, 200, data.settings || {});
+    }
+
+    if (req.method === 'PUT' && url.pathname === '/api/settings') {
+      const body = await readJsonBody(req);
+      const data = updateSettings(normalizeSettings(body));
+      return sendJson(res, 200, data.settings || {});
+    }
+
+    if (req.method === 'GET' && url.pathname === '/api/export') {
+      const data = readData();
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      return res.end(JSON.stringify(data, null, 2));
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/reset') {
+      const data = resetAllData();
+      return sendJson(res, 200, buildDashboard(data));
     }
 
     if (req.method === 'GET' && url.pathname === '/api/summary.txt') {

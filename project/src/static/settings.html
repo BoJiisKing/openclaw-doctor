@@ -10,26 +10,100 @@
     .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.05); }
     h1,h2 { margin: 0 0 12px; }
     .muted { color: #6b7280; }
+    label { display:block; margin-bottom: 12px; }
+    input, select, textarea, button { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid #d1d5db; font: inherit; }
+    .actions { display:flex; gap: 10px; flex-wrap: wrap; }
+    button { background:#2563eb; color:#fff; border:none; cursor:pointer; }
+    button.secondary { background:#e5e7eb; color:#111827; }
+    button.danger { background:#b91c1c; }
     a { color: #2563eb; text-decoration: none; }
+    pre { background:#0f172a; color:#e2e8f0; padding:12px; border-radius:12px; overflow:auto; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>设置（雏形）</h1>
-      <p class="muted">这里后续会放用户模式、提醒时间、紧急联系人、隐私导出与删除等配置。</p>
+      <h1>设置</h1>
+      <p class="muted">这里可以保存默认模式、提醒时间和紧急联系人。后续会继续扩展。</p>
       <p><a href="/">返回首页</a></p>
     </div>
+
     <div class="card">
-      <h2>计划中的设置项</h2>
-      <ul>
-        <li>默认模式</li>
-        <li>提醒时间</li>
-        <li>紧急联系人</li>
-        <li>数据导出</li>
-        <li>清空本地数据</li>
-      </ul>
+      <h2>基本设置</h2>
+      <form id="settingsForm">
+        <label>默认模式
+          <select name="defaultMode">
+            <option value="depression">抑郁</option>
+            <option value="anxiety">焦虑</option>
+            <option value="bipolar">双相</option>
+          </select>
+        </label>
+        <label>提醒时间（逗号分隔）
+          <input name="reminderTimes" placeholder="08:00, 21:00">
+        </label>
+        <label>紧急联系人
+          <input name="emergencyContact" placeholder="姓名 / 电话 / 关系">
+        </label>
+        <div class="actions">
+          <button type="submit">保存设置</button>
+          <button type="button" class="secondary" id="exportData">导出全部数据</button>
+          <button type="button" class="danger" id="resetData">重置全部数据</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>当前设置</h2>
+      <pre id="settingsPreview">加载中...</pre>
     </div>
   </div>
+
+  <script>
+    async function fetchJson(url, options) {
+      const res = await fetch(url, options);
+      return res.json();
+    }
+
+    async function loadSettings() {
+      const data = await fetchJson('/api/settings');
+      document.getElementById('settingsPreview').textContent = JSON.stringify(data, null, 2);
+      const form = document.getElementById('settingsForm');
+      form.elements.defaultMode.value = data.defaultMode || 'depression';
+      form.elements.reminderTimes.value = (data.reminderTimes || []).join(', ');
+      form.elements.emergencyContact.value = data.emergencyContact || '';
+    }
+
+    document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const body = Object.fromEntries(fd.entries());
+      await fetchJson('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      await loadSettings();
+    });
+
+    document.getElementById('exportData').addEventListener('click', async () => {
+      const text = await fetch('/api/export').then(r => r.text());
+      const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mind-harbor-data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('resetData').addEventListener('click', async () => {
+      if (!confirm('确定要重置全部本地数据吗？')) return;
+      await fetchJson('/api/reset', { method: 'POST' });
+      await loadSettings();
+      alert('已重置。');
+    });
+
+    loadSettings();
+  </script>
 </body>
 </html>

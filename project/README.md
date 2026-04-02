@@ -83,7 +83,7 @@ npm start
 
 - `/` 首页仪表盘
 - `/crisis` 危机支持页
-- `/settings` 设置页雏形
+- `/settings` 设置页（支持保存默认模式、提醒时间、紧急联系人、导出数据、重置数据）
 
 ```bash
 cd project
