@@ -1,6 +1,8 @@
 import { evaluateRisk, generateSupportPlan, summarizeVisit } from './engine.js';
 import { modeCopy, crisisCopy } from './content.js';
 import { buildTrends } from './stats.js';
+import { trustedResources } from './resources.js';
+import { recommendResources } from './recommend.js';
 
 export function buildDashboard(data) {
   const latest = data.checkins?.[0] || fallbackCheckin(data.user?.mode || 'depression');
