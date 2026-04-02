@@ -5,38 +5,87 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mind Harbor Demo</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 0; background: #f5f7fb; color: #1f2937; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
-    .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.05); }
-    .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+    :root {
+      --bg: #eef4f7;
+      --bg-soft: #f7fbfc;
+      --panel: rgba(255,255,255,.78);
+      --line: rgba(148, 163, 184, .22);
+      --text: #1f2937;
+      --muted: #667085;
+      --primary: #315c72;
+      --primary-soft: #dcecf2;
+      --green: #2f7d67;
+      --orange: #b7791f;
+      --red: #b04747;
+      --shadow: 0 18px 40px rgba(50, 79, 92, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Georgia, 'Noto Serif SC', 'Source Han Serif SC', serif;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(173, 216, 230, .35), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(196, 224, 229, .4), transparent 32%),
+        linear-gradient(180deg, #edf4f7 0%, #f7fbfc 100%);
+    }
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 28px 20px 56px; }
+    .hero {
+      background: linear-gradient(135deg, rgba(255,255,255,.72), rgba(243,248,250,.92));
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 28px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+    .hero h1 { margin: 0 0 10px; font-size: 34px; letter-spacing: .02em; }
+    .hero p { margin: 0; color: var(--muted); max-width: 760px; line-height: 1.8; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+    .grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; align-items: start; }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
     h1,h2,h3 { margin: 0 0 12px; }
-    .tag { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #e5eefc; margin-right: 8px; margin-bottom: 8px; }
-    .risk-low { color: #166534; }
-    .risk-medium { color: #b45309; }
-    .risk-high { color: #b91c1c; }
-    ul { padding-left: 20px; }
-    .muted { color: #6b7280; }
-    label { display: block; font-size: 14px; margin-bottom: 10px; }
-    input, select, textarea, button { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid #d1d5db; font: inherit; }
+    h2 { font-size: 22px; }
+    .tag { display: inline-block; padding: 6px 12px; border-radius: 999px; background: var(--primary-soft); color: var(--primary); margin-right: 8px; margin-bottom: 8px; font-size: 13px; }
+    .risk-low { color: var(--green); }
+    .risk-medium { color: var(--orange); }
+    .risk-high { color: var(--red); }
+    ul { padding-left: 20px; line-height: 1.8; }
+    .muted { color: var(--muted); }
+    label { display: block; font-size: 14px; margin-bottom: 10px; color: #334155; }
+    input, select, textarea, button { width: 100%; padding: 11px 12px; border-radius: 14px; border: 1px solid rgba(148,163,184,.28); font: inherit; background: rgba(255,255,255,.92); }
     textarea { min-height: 88px; resize: vertical; }
-    button { background: #2563eb; color: white; border: none; cursor: pointer; }
-    button.secondary { background: #e5e7eb; color: #111827; }
-    button.danger { background: #b91c1c; }
-    button.warn { background: #f59e0b; }
+    button { background: linear-gradient(135deg, #315c72, #46758b); color: white; border: none; cursor: pointer; box-shadow: 0 10px 24px rgba(49,92,114,.18); }
+    button.secondary { background: #e8eef1; color: #22313f; box-shadow: none; }
+    button.danger { background: linear-gradient(135deg, #b04747, #c05f5f); }
+    button.warn { background: linear-gradient(135deg, #b7791f, #cf9334); }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .small { font-size: 13px; }
     table { width: 100%; border-collapse: collapse; }
-    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: top; }
-    .pill { display: inline-block; padding: 2px 8px; background: #eef2ff; border-radius: 999px; font-size: 12px; }
+    th, td { text-align: left; padding: 10px 6px; border-bottom: 1px solid rgba(148,163,184,.16); font-size: 14px; vertical-align: top; }
+    .pill { display: inline-block; padding: 3px 10px; background: #edf5f7; border-radius: 999px; font-size: 12px; color: var(--primary); }
     .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    a.linkbtn { display: inline-block; text-decoration: none; background: #fee2e2; color: #991b1b; padding: 8px 12px; border-radius: 10px; }
+    a.linkbtn { display: inline-block; text-decoration: none; background: #eef5f7; color: #315c72; padding: 9px 13px; border-radius: 12px; border: 1px solid rgba(148,163,184,.18); }
     .chart { display: flex; align-items: end; gap: 8px; height: 120px; margin-top: 8px; }
     .barwrap { flex: 1; min-width: 0; }
-    .bar { width: 100%; border-radius: 8px 8px 0 0; background: #93c5fd; }
-    .bar.sleep { background: #a7f3d0; }
-    .bar.anxiety { background: #fdba74; }
-    .chartlabel { text-align: center; font-size: 12px; color: #6b7280; margin-top: 6px; }
+    .bar { width: 100%; border-radius: 10px 10px 0 0; background: #7aa6bc; }
+    .bar.sleep { background: #92bfae; }
+    .bar.anxiety { background: #d3a45d; }
+    .chartlabel { text-align: center; font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .editorial { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; }
+    .story { background: rgba(255,255,255,.62); border:1px solid var(--line); border-radius:20px; padding:16px; min-height:170px; }
+    .story small { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 11px; display:block; margin-bottom:10px; }
+    .story h3 { font-size: 22px; line-height: 1.3; }
+    .story p { color: var(--muted); line-height: 1.75; }
+    @media (max-width: 900px) { .editorial { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -58,6 +107,8 @@
       <div>
         <div class="card" id="dashboard"></div>
         <div class="card" id="settingsSummary"></div>
+        <div class="card" id="dailyInsight"></div>
+        <div class="card" id="editorialFeed"></div>
         <div class="card" id="recommendedResources"></div>
         <div class="card" id="trends"></div>
         <div class="card">
@@ -209,6 +260,17 @@
         <p>${esc(data.dailyInsight.body)}</p>
       `;
 
+      document.getElementById('editorialFeed').innerHTML = `
+        <h2>今日陪伴与阅读</h2>
+        <div class="editorial">${(data.editorialCards || []).map(card => `
+          <article class="story">
+            <small>${esc(card.eyebrow)}</small>
+            <h3>${esc(card.title)}</h3>
+            <p>${esc(card.body)}</p>
+          </article>
+        `).join('')}</div>
+      `;
+
       document.getElementById('recommendedResources').innerHTML = `
         <h2>根据当前状态推荐阅读</h2>
         <ul>${(data.recommendedResources || []).map(item => `<li><a href="${esc(item.url)}" target="_blank" rel="noreferrer">${esc(item.title)}</a>：${esc(item.reason)}</li>`).join('')}</ul>
@@ -217,8 +279,8 @@
       const bars = data.trends.labels.map((label, i) => `
         <div class="barwrap">
           <div class="bar" style="height:${(data.trends.mood[i] || 0) * 10}px" title="心情 ${data.trends.mood[i] || 0}"></div>
-          <div class="bar anxiety" style="height:${(data.trends.anxiety[i] || 0) * 10}px" title="焦虑 ${data.trends.anxiety[i] || 0}; margin-top:4px"></div>
-          <div class="bar sleep" style="height:${Math.min((data.trends.sleep[i] || 0) * 10, 100)}px" title="睡眠 ${data.trends.sleep[i] || 0}; margin-top:4px"></div>
+          <div class="bar anxiety" style="height:${(data.trends.anxiety[i] || 0) * 10}px" title="焦虑 ${data.trends.anxiety[i] || 0}"></div>
+          <div class="bar sleep" style="height:${Math.min((data.trends.sleep[i] || 0) * 10, 100)}px" title="睡眠 ${data.trends.sleep[i] || 0}"></div>
           <div class="chartlabel">${esc(label)}</div>
         </div>
       `).join('');
@@ -295,13 +357,9 @@
       const editingId = body.editingId;
       delete body.editingId;
       if (editingId) {
-        await fetchJson(`/api/checkins/${editingId}`, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
-        });
+        await fetchJson(`/api/checkins/${editingId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       } else {
-        await fetchJson('/api/checkins', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
-        });
+        await fetchJson('/api/checkins', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       }
       resetCheckinForm();
       await loadDashboard();
@@ -315,13 +373,9 @@
       const editingId = body.editingId;
       delete body.editingId;
       if (editingId) {
-        await fetchJson(`/api/medications/${editingId}`, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
-        });
+        await fetchJson(`/api/medications/${editingId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       } else {
-        await fetchJson('/api/medications', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
-        });
+        await fetchJson('/api/medications', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       }
       resetMedForm();
       await loadDashboard();
@@ -344,62 +398,6 @@
     window.deleteMedication = deleteMedication;
     window.editCheckin = editCheckin;
     window.editMedication = editMedication;
-    window.resetCheckinForm = resetCheckinForm;
-    window.resetMedForm = resetMedForm;
-  </script>
-</body>
-</html>
-ion;
-    window.resetCheckinForm = resetCheckinForm;
-    window.resetMedForm = resetMedForm;
-  </script>
-</body>
-</html>
-ory();
-    });
-
-    document.getElementById('medForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      const body = Object.fromEntries(fd.entries());
-      const editingId = body.editingId;
-      delete body.editingId;
-      if (editingId) {
-        await fetchJson(`/api/medications/${editingId}`, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
-        });
-      } else {
-        await fetchJson('/api/medications', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
-        });
-      }
-      resetMedForm();
-      await loadDashboard();
-    });
-
-    document.getElementById('downloadSummary').addEventListener('click', async () => {
-      const text = await fetch('/api/summary.txt').then(r => r.text());
-      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'visit-summary.txt';
-      a.click();
-      URL.revokeObjectURL(url);
-    });
-
-    loadDashboard();
-    loadHistory();
-    window.deleteCheckin = deleteCheckin;
-    window.deleteMedication = deleteMedication;
-    window.editCheckin = editCheckin;
-    window.editMedication = editMedication;
-    window.resetCheckinForm = resetCheckinForm;
-    window.resetMedForm = resetMedForm;
-  </script>
-</body>
-</html>
-ion;
     window.resetCheckinForm = resetCheckinForm;
     window.resetMedForm = resetMedForm;
   </script>

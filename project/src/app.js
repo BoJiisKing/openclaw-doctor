@@ -3,12 +3,16 @@ import { modeCopy, crisisCopy } from './content.js';
 import { buildTrends } from './stats.js';
 import { trustedResources } from './resources.js';
 import { recommendResources } from './recommend.js';
+import { buildDailyInsight } from './daily.js';
+import { buildEditorialCards } from './editorial.js';
 
 export function buildDashboard(data) {
   const latest = data.checkins?.[0] || fallbackCheckin(data.user?.mode || 'depression');
   const risk = evaluateRisk(latest);
   const support = generateSupportPlan(latest, risk);
   const summary = summarizeVisit(data.checkins || [latest]);
+  const dailyInsight = buildDailyInsight({ userMode: latest.mode, risk, latestCheckin: latest });
+  const recommendedResources = recommendResources({ userMode: latest.mode, risk, latestCheckin: latest }, trustedResources);
 
   return {
     userMode: latest.mode,
@@ -24,8 +28,9 @@ export function buildDashboard(data) {
     recentCheckins: data.checkins?.slice(0, 10) || [],
     trends: buildTrends(data.checkins || []),
     statusCard: buildStatusCard(risk, latest),
-    dailyInsight: buildDailyInsight({ userMode: latest.mode, risk, latestCheckin: latest }),
-    recommendedResources: recommendResources({ userMode: latest.mode, risk, latestCheckin: latest }, trustedResources)
+    dailyInsight,
+    recommendedResources,
+    editorialCards: buildEditorialCards({ userMode: latest.mode, risk, latestCheckin: latest, dailyInsight, recommendedResources })
   };
 }
 
