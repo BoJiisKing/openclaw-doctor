@@ -53,6 +53,23 @@ Mind Harbor 不是 AI 医生，也不是自动诊断/自动改药系统。
 - `docs/technical-architecture.md` 技术架构
 - `src/` 第一版原型代码
 
+## 本地运行
+
+```bash
+cd project
+npm start
+```
+
+打开：`http://localhost:3030`
+
+### 当前支持
+
+- 查看仪表盘
+- 提交每日打卡
+- 添加药物
+- 查看最近历史记录
+- 本地 JSON 数据持久化（`project/data/app-data.json`）
+
 ## 公开资料方向（待进一步人工审核）
 
 已参考调研方向包括：

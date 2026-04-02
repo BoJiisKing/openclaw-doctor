@@ -6,15 +6,28 @@
   <title>Mind Harbor Demo</title>
   <style>
     body { font-family: system-ui, sans-serif; margin: 0; background: #f5f7fb; color: #1f2937; }
-    .wrap { max-width: 900px; margin: 0 auto; padding: 24px; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
     .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.05); }
-    h1,h2 { margin: 0 0 12px; }
-    .tag { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #e5eefc; margin-right: 8px; }
+    .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 900px) { .grid, .grid-2 { grid-template-columns: 1fr; } }
+    h1,h2,h3 { margin: 0 0 12px; }
+    .tag { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #e5eefc; margin-right: 8px; margin-bottom: 8px; }
     .risk-low { color: #166534; }
     .risk-medium { color: #b45309; }
     .risk-high { color: #b91c1c; }
     ul { padding-left: 20px; }
     .muted { color: #6b7280; }
+    label { display: block; font-size: 14px; margin-bottom: 10px; }
+    input, select, textarea, button { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid #d1d5db; font: inherit; }
+    textarea { min-height: 88px; resize: vertical; }
+    button { background: #2563eb; color: white; border: none; cursor: pointer; }
+    button.secondary { background: #e5e7eb; color: #111827; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .small { font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: top; }
+    .pill { display: inline-block; padding: 2px 8px; background: #eef2ff; border-radius: 999px; font-size: 12px; }
   </style>
 </head>
 <body>
@@ -27,49 +40,168 @@
         <span class="tag">服药提醒</span>
         <span class="tag">危机支持</span>
         <span class="tag">复诊摘要</span>
+        <span class="tag">本地 JSON 存储</span>
       </div>
     </div>
 
-    <div id="app"></div>
+    <div class="grid">
+      <div>
+        <div class="card" id="dashboard"></div>
+        <div class="card">
+          <h2>最近记录</h2>
+          <div id="history"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>每日打卡</h2>
+          <form id="checkinForm">
+            <label>模式
+              <select name="mode">
+                <option value="depression">抑郁</option>
+                <option value="anxiety">焦虑</option>
+                <option value="bipolar">双相</option>
+              </select>
+            </label>
+            <div class="row">
+              <label>心情（0-10）<input name="mood" type="number" min="0" max="10" value="5"></label>
+              <label>焦虑（0-10）<input name="anxiety" type="number" min="0" max="10" value="5"></label>
+            </div>
+            <div class="row">
+              <label>精力（0-10）<input name="energy" type="number" min="0" max="10" value="5"></label>
+              <label>睡眠小时数<input name="sleepHours" type="number" min="0" max="24" value="7"></label>
+            </div>
+            <div class="row">
+              <label>食欲（0-10）<input name="appetite" type="number" min="0" max="10" value="5"></label>
+              <label>近 7 天漏药次数<input name="medicationMisses7d" type="number" min="0" max="30" value="0"></label>
+            </div>
+            <div class="row">
+              <label>冲动程度（0-10）<input name="impulsivity" type="number" min="0" max="10" value="0"></label>
+              <label>情绪高涨（0-10）<input name="elevatedMood" type="number" min="0" max="10" value="0"></label>
+            </div>
+            <label>自伤想法
+              <select name="selfHarmThoughts">
+                <option value="none">无</option>
+                <option value="passive">有被动想法</option>
+                <option value="active">有主动风险</option>
+              </select>
+            </label>
+            <label>备注
+              <textarea name="notes" placeholder="今天发生了什么？有没有明显触发点、副作用、难受的时段？"></textarea>
+            </label>
+            <button type="submit">保存今日打卡</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>添加药物</h2>
+          <form id="medForm">
+            <label>药物名称<input name="name" placeholder="如：舍曲林 / 喹硫平 / 示例药物"></label>
+            <label>服用时间（逗号分隔）<input name="schedule" placeholder="08:00, 21:00"></label>
+            <label>备注<textarea name="notes" placeholder="如：遵医嘱服用、饭后、睡前等"></textarea></label>
+            <button type="submit">添加药物</button>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
-    async function main() {
-      const res = await fetch('/api/dashboard');
-      const data = await res.json();
+    async function fetchJson(url, options) {
+      const res = await fetch(url, options);
+      return res.json();
+    }
+
+    function esc(text) {
+      return String(text ?? '').replace(/[&<>\"]/g, s => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[s]));
+    }
+
+    async function loadDashboard() {
+      const data = await fetchJson('/api/dashboard');
       const riskCls = `risk-${data.risk.riskLevel}`;
-      document.getElementById('app').innerHTML = `
-        <div class="card">
-          <h2>${data.modeTitle}</h2>
-          <p>${data.modeIntro}</p>
-        </div>
-        <div class="card">
-          <h2>当前风险等级：<span class="${riskCls}">${data.risk.riskLevel}</span></h2>
-          <p>触发标记：${data.risk.flags.join('、') || '无'}</p>
-          <p>${data.crisisMessage}</p>
-        </div>
-        <div class="card">
-          <h2>支持建议</h2>
-          <p>${data.support.message}</p>
-          <ul>${data.support.actions.map(x => `<li>${x}</li>`).join('')}</ul>
-        </div>
-        <div class="card">
-          <h2>今日药物</h2>
-          <ul>${data.medications.map(m => `<li>${m.name}：${m.schedule.join(', ')}（${m.notes}）</li>`).join('')}</ul>
-        </div>
-        <div class="card">
-          <h2>复诊摘要</h2>
-          <ul>
-            <li>平均心情：${data.summary.averageMood}</li>
-            <li>平均睡眠：${data.summary.averageSleepHours} 小时</li>
-            <li>记录到的漏服次数：${data.summary.medicationMissesReported}</li>
-            <li>有自伤想法的记录天数：${data.summary.daysWithSelfHarmThoughts}</li>
-          </ul>
-          <p>${data.summary.clinicianPrompt}</p>
-        </div>
+      document.getElementById('dashboard').innerHTML = `
+        <h2>${esc(data.modeTitle || '支持模式')}</h2>
+        <p>${esc(data.modeIntro || '')}</p>
+        <p><strong>当前风险等级：</strong><span class="${riskCls}">${esc(data.risk.riskLevel)}</span></p>
+        <p><strong>触发标记：</strong>${data.risk.flags.length ? data.risk.flags.map(esc).join('、') : '无'}</p>
+        <p>${esc(data.crisisMessage)}</p>
+
+        <h3>支持建议</h3>
+        <p>${esc(data.support.message)}</p>
+        <ul>${data.support.actions.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+
+        <h3>药物</h3>
+        <ul>${data.medications.map(m => `<li>${esc(m.name)}：${esc((m.schedule || []).join(', '))}（${esc(m.notes || '')}）</li>`).join('')}</ul>
+
+        <h3>复诊摘要</h3>
+        <ul>
+          <li>平均心情：${esc(data.summary.averageMood)}</li>
+          <li>平均睡眠：${esc(data.summary.averageSleepHours)} 小时</li>
+          <li>记录到的漏服次数：${esc(data.summary.medicationMissesReported)}</li>
+          <li>有自伤想法的记录天数：${esc(data.summary.daysWithSelfHarmThoughts)}</li>
+        </ul>
+        <p class="small muted">${esc(data.summary.clinicianPrompt)}</p>
       `;
     }
-    main();
+
+    async function loadHistory() {
+      const items = await fetchJson('/api/history');
+      if (!items.length) {
+        document.getElementById('history').innerHTML = '<p class="muted">还没有历史记录。</p>';
+        return;
+      }
+      document.getElementById('history').innerHTML = `
+        <table>
+          <thead>
+            <tr><th>时间</th><th>模式</th><th>心情</th><th>焦虑</th><th>睡眠</th><th>风险线索</th><th>备注</th></tr>
+          </thead>
+          <tbody>
+            ${items.map(item => `
+              <tr>
+                <td>${esc(new Date(item.createdAt).toLocaleString('zh-CN'))}</td>
+                <td><span class="pill">${esc(item.mode)}</span></td>
+                <td>${esc(item.mood)}</td>
+                <td>${esc(item.anxiety)}</td>
+                <td>${esc(item.sleepHours)}</td>
+                <td>${esc(item.selfHarmThoughts)}</td>
+                <td>${esc(item.notes || '')}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    document.getElementById('checkinForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const body = Object.fromEntries(fd.entries());
+      await fetchJson('/api/checkins', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      e.target.reset();
+      await loadDashboard();
+      await loadHistory();
+    });
+
+    document.getElementById('medForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const body = Object.fromEntries(fd.entries());
+      await fetchJson('/api/medications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      e.target.reset();
+      await loadDashboard();
+    });
+
+    loadDashboard();
+    loadHistory();
   </script>
 </body>
 </html>
