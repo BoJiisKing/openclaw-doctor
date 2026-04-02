@@ -1,0 +1,23 @@
+{
+  "user": {
+    "id": "u_001",
+    "mode": "depression",
+    "timezone": "Asia/Shanghai"
+  },
+  "medications": [
+    {
+      "name": "示例药物",
+      "schedule": ["08:00", "20:00"],
+      "notes": "遵医嘱服用"
+    }
+  ],
+  "checkin": {
+    "mood": 4,
+    "anxiety": 5,
+    "energy": 3,
+    "sleepHours": 6,
+    "appetite": 4,
+    "selfHarmThoughts": "none",
+    "notes": "今天稍微好一点"
+  }
+}
