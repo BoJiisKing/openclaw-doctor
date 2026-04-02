@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDashboard } from './app.js';
-import { readData, addCheckin, addMedication, ensureDataFile, deleteMedication, deleteCheckin } from './storage.js';
+import { readData, addCheckin, addMedication, ensureDataFile, deleteMedication, deleteCheckin, updateCheckin, updateMedication } from './storage.js';
 import { readJsonBody, sendJson } from './http.js';
 import { normalizeCheckin, normalizeMedication } from './validate.js';
 import { buildVisitSummaryText } from './summary.js';
@@ -39,6 +39,13 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 201, buildDashboard(data));
     }
 
+    if (req.method === 'PUT' && url.pathname.startsWith('/api/checkins/')) {
+      const id = url.pathname.split('/').pop();
+      const body = await readJsonBody(req);
+      const data = updateCheckin(id, normalizeCheckin(body));
+      return sendJson(res, 200, buildDashboard(data));
+    }
+
     if (req.method === 'DELETE' && url.pathname.startsWith('/api/checkins/')) {
       const id = url.pathname.split('/').pop();
       const data = deleteCheckin(id);
@@ -49,6 +56,13 @@ const server = http.createServer(async (req, res) => {
       const body = await readJsonBody(req);
       const data = addMedication(normalizeMedication(body));
       return sendJson(res, 201, data.medications);
+    }
+
+    if (req.method === 'PUT' && url.pathname.startsWith('/api/medications/')) {
+      const id = url.pathname.split('/').pop();
+      const body = await readJsonBody(req);
+      const data = updateMedication(id, normalizeMedication(body));
+      return sendJson(res, 200, data.medications);
     }
 
     if (req.method === 'GET' && url.pathname === '/api/medications') {

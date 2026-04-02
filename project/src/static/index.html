@@ -9,8 +9,7 @@
     .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
     .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.05); }
     .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media (max-width: 900px) { .grid, .grid-2 { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
     h1,h2,h3 { margin: 0 0 12px; }
     .tag { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #e5eefc; margin-right: 8px; margin-bottom: 8px; }
     .risk-low { color: #166534; }
@@ -24,6 +23,7 @@
     button { background: #2563eb; color: white; border: none; cursor: pointer; }
     button.secondary { background: #e5e7eb; color: #111827; }
     button.danger { background: #b91c1c; }
+    button.warn { background: #f59e0b; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .small { font-size: 13px; }
     table { width: 100%; border-collapse: collapse; }
@@ -31,6 +31,12 @@
     .pill { display: inline-block; padding: 2px 8px; background: #eef2ff; border-radius: 999px; font-size: 12px; }
     .actions { display: flex; gap: 8px; flex-wrap: wrap; }
     a.linkbtn { display: inline-block; text-decoration: none; background: #fee2e2; color: #991b1b; padding: 8px 12px; border-radius: 10px; }
+    .chart { display: flex; align-items: end; gap: 8px; height: 120px; margin-top: 8px; }
+    .barwrap { flex: 1; min-width: 0; }
+    .bar { width: 100%; border-radius: 8px 8px 0 0; background: #93c5fd; }
+    .bar.sleep { background: #a7f3d0; }
+    .bar.anxiety { background: #fdba74; }
+    .chartlabel { text-align: center; font-size: 12px; color: #6b7280; margin-top: 6px; }
   </style>
 </head>
 <body>
@@ -44,12 +50,14 @@
         <span class="tag">危机支持</span>
         <span class="tag">复诊摘要</span>
         <span class="tag">本地 JSON 存储</span>
+        <span class="tag">趋势统计</span>
       </div>
     </div>
 
     <div class="grid">
       <div>
         <div class="card" id="dashboard"></div>
+        <div class="card" id="trends"></div>
         <div class="card">
           <div class="actions" style="margin-bottom:12px;">
             <button class="secondary" id="downloadSummary">导出复诊摘要</button>
@@ -64,6 +72,7 @@
         <div class="card">
           <h2>每日打卡</h2>
           <form id="checkinForm">
+            <input type="hidden" name="editingId" value="">
             <label>模式
               <select name="mode">
                 <option value="depression">抑郁</option>
@@ -97,17 +106,24 @@
             <label>备注
               <textarea name="notes" placeholder="今天发生了什么？有没有明显触发点、副作用、难受的时段？"></textarea>
             </label>
-            <button type="submit">保存今日打卡</button>
+            <div class="actions">
+              <button type="submit">保存今日打卡</button>
+              <button type="button" class="secondary" onclick="resetCheckinForm()">清空</button>
+            </div>
           </form>
         </div>
 
         <div class="card">
           <h2>添加药物</h2>
           <form id="medForm">
+            <input type="hidden" name="editingId" value="">
             <label>药物名称<input name="name" placeholder="如：舍曲林 / 喹硫平 / 示例药物"></label>
             <label>服用时间（逗号分隔）<input name="schedule" placeholder="08:00, 21:00"></label>
             <label>备注<textarea name="notes" placeholder="如：遵医嘱服用、饭后、睡前等"></textarea></label>
-            <button type="submit">添加药物</button>
+            <div class="actions">
+              <button type="submit">保存药物</button>
+              <button type="button" class="secondary" onclick="resetMedForm()">清空</button>
+            </div>
           </form>
         </div>
       </div>
@@ -115,6 +131,9 @@
   </div>
 
   <script>
+    let latestHistory = [];
+    let latestMeds = [];
+
     async function fetchJson(url, options) {
       const res = await fetch(url, options);
       return res.json();
@@ -124,8 +143,25 @@
       return String(text ?? '').replace(/[&<>\"]/g, s => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[s]));
     }
 
+    function setForm(form, data) {
+      Object.entries(data).forEach(([k,v]) => {
+        if (form.elements[k]) form.elements[k].value = Array.isArray(v) ? v.join(', ') : v;
+      });
+    }
+
+    function resetCheckinForm() {
+      document.getElementById('checkinForm').reset();
+      document.querySelector('#checkinForm [name="editingId"]').value = '';
+    }
+
+    function resetMedForm() {
+      document.getElementById('medForm').reset();
+      document.querySelector('#medForm [name="editingId"]').value = '';
+    }
+
     async function loadDashboard() {
       const data = await fetchJson('/api/dashboard');
+      latestMeds = data.medications || [];
       const riskCls = `risk-${data.risk.riskLevel}`;
       const crisisLink = data.risk.riskLevel === 'high' ? '<p><a class="linkbtn" href="/crisis">立即查看危机支持</a></p>' : '';
       document.getElementById('dashboard').innerHTML = `
@@ -141,7 +177,7 @@
         <ul>${data.support.actions.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
 
         <h3>药物</h3>
-        <ul>${data.medications.map(m => `<li>${esc(m.name)}：${esc((m.schedule || []).join(', '))}（${esc(m.notes || '')}） <button class="danger small" onclick="deleteMedication('${esc(m.id)}')">删除</button></li>`).join('')}</ul>
+        <ul>${data.medications.map(m => `<li>${esc(m.name)}：${esc((m.schedule || []).join(', '))}（${esc(m.notes || '')}） <button class="warn small" onclick="editMedication('${esc(m.id)}')">编辑</button> <button class="danger small" onclick="deleteMedication('${esc(m.id)}')">删除</button></li>`).join('')}</ul>
 
         <h3>复诊摘要</h3>
         <ul>
@@ -152,10 +188,25 @@
         </ul>
         <p class="small muted">${esc(data.summary.clinicianPrompt)}</p>
       `;
+
+      const bars = data.trends.labels.map((label, i) => `
+        <div class="barwrap">
+          <div class="bar" style="height:${(data.trends.mood[i] || 0) * 10}px" title="心情 ${data.trends.mood[i] || 0}"></div>
+          <div class="bar anxiety" style="height:${(data.trends.anxiety[i] || 0) * 10}px" title="焦虑 ${data.trends.anxiety[i] || 0}; margin-top:4px"></div>
+          <div class="bar sleep" style="height:${Math.min((data.trends.sleep[i] || 0) * 10, 100)}px" title="睡眠 ${data.trends.sleep[i] || 0}; margin-top:4px"></div>
+          <div class="chartlabel">${esc(label)}</div>
+        </div>
+      `).join('');
+      document.getElementById('trends').innerHTML = `
+        <h2>近 7 条趋势</h2>
+        <p class="muted small">蓝色=心情，橙色=焦虑，绿色=睡眠时长</p>
+        <div class="chart">${bars || '<p class="muted">暂无趋势数据</p>'}</div>
+      `;
     }
 
     async function loadHistory() {
       const items = await fetchJson('/api/history');
+      latestHistory = items;
       if (!items.length) {
         document.getElementById('history').innerHTML = '<p class="muted">还没有历史记录。</p>';
         return;
@@ -175,12 +226,30 @@
                 <td>${esc(item.sleepHours)}</td>
                 <td>${esc(item.selfHarmThoughts)}</td>
                 <td>${esc(item.notes || '')}</td>
-                <td><button class="danger small" onclick="deleteCheckin('${esc(item.id)}')">删除</button></td>
+                <td><button class="warn small" onclick="editCheckin('${esc(item.id)}')">编辑</button> <button class="danger small" onclick="deleteCheckin('${esc(item.id)}')">删除</button></td>
               </tr>
             `).join('')}
           </tbody>
         </table>
       `;
+    }
+
+    async function editCheckin(id) {
+      const item = latestHistory.find(v => v.id === id);
+      if (!item) return;
+      const form = document.getElementById('checkinForm');
+      setForm(form, item);
+      form.elements.editingId.value = id;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function editMedication(id) {
+      const item = latestMeds.find(v => v.id === id);
+      if (!item) return;
+      const form = document.getElementById('medForm');
+      setForm(form, item);
+      form.elements.editingId.value = id;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     async function deleteCheckin(id) {
@@ -198,12 +267,18 @@
       e.preventDefault();
       const fd = new FormData(e.target);
       const body = Object.fromEntries(fd.entries());
-      await fetchJson('/api/checkins', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      e.target.reset();
+      const editingId = body.editingId;
+      delete body.editingId;
+      if (editingId) {
+        await fetchJson(`/api/checkins/${editingId}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+        });
+      } else {
+        await fetchJson('/api/checkins', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+        });
+      }
+      resetCheckinForm();
       await loadDashboard();
       await loadHistory();
     });
@@ -212,12 +287,18 @@
       e.preventDefault();
       const fd = new FormData(e.target);
       const body = Object.fromEntries(fd.entries());
-      await fetchJson('/api/medications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      e.target.reset();
+      const editingId = body.editingId;
+      delete body.editingId;
+      if (editingId) {
+        await fetchJson(`/api/medications/${editingId}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+        });
+      } else {
+        await fetchJson('/api/medications', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+        });
+      }
+      resetMedForm();
       await loadDashboard();
     });
 
@@ -236,6 +317,10 @@
     loadHistory();
     window.deleteCheckin = deleteCheckin;
     window.deleteMedication = deleteMedication;
+    window.editCheckin = editCheckin;
+    window.editMedication = editMedication;
+    window.resetCheckinForm = resetCheckinForm;
+    window.resetMedForm = resetMedForm;
   </script>
 </body>
 </html>

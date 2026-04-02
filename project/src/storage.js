@@ -81,3 +81,17 @@ export function deleteCheckin(id) {
   writeData(data);
   return data;
 }
+
+export function updateCheckin(id, patch) {
+  const data = readData();
+  data.checkins = data.checkins.map(item => item.id === id ? { ...item, ...patch } : item);
+  writeData(data);
+  return data;
+}
+
+export function updateMedication(id, patch) {
+  const data = readData();
+  data.medications = data.medications.map(item => item.id === id ? { ...item, ...patch } : item);
+  writeData(data);
+  return data;
+}

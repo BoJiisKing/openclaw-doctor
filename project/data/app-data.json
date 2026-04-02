@@ -26,17 +26,17 @@
     {
       "id": "c_1775114468660",
       "createdAt": "2026-04-02T07:21:08.660Z",
-      "mode": "anxiety",
-      "mood": 4,
-      "anxiety": 8,
-      "energy": 3,
-      "sleepHours": 5,
-      "appetite": 4,
+      "mode": "bipolar",
+      "mood": 6,
+      "anxiety": 3,
+      "energy": 7,
+      "sleepHours": 3,
+      "appetite": 5,
       "selfHarmThoughts": "none",
-      "impulsivity": 1,
-      "elevatedMood": 0,
-      "medicationMisses7d": 1,
-      "notes": "测试新增记录"
+      "impulsivity": 7,
+      "elevatedMood": 8,
+      "medicationMisses7d": 0,
+      "notes": "编辑测试"
     },
     {
       "id": "c1",

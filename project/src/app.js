@@ -1,5 +1,6 @@
 import { evaluateRisk, generateSupportPlan, summarizeVisit } from './engine.js';
 import { modeCopy, crisisCopy } from './content.js';
+import { buildTrends } from './stats.js';
 
 export function buildDashboard(data) {
   const latest = data.checkins?.[0] || fallbackCheckin(data.user?.mode || 'depression');
@@ -17,7 +18,8 @@ export function buildDashboard(data) {
     summary,
     medications: data.medications,
     latestCheckin: latest,
-    recentCheckins: data.checkins?.slice(0, 10) || []
+    recentCheckins: data.checkins?.slice(0, 10) || [],
+    trends: buildTrends(data.checkins || [])
   };
 }
 

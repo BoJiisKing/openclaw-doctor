@@ -51,6 +51,7 @@ Mind Harbor 不是 AI 医生，也不是自动诊断/自动改药系统。
 - `docs/safety-spec.md` 安全与边界规范
 - `docs/mode-design.md` 病种模式设计
 - `docs/technical-architecture.md` 技术架构
+- `docs/roadmap.md` 路线图
 - `src/` 第一版原型代码
 
 ## 本地运行
