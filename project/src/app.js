@@ -19,7 +19,27 @@ export function buildDashboard(data) {
     medications: data.medications,
     latestCheckin: latest,
     recentCheckins: data.checkins?.slice(0, 10) || [],
-    trends: buildTrends(data.checkins || [])
+    trends: buildTrends(data.checkins || []),
+    statusCard: buildStatusCard(risk, latest)
+  };
+}
+
+function buildStatusCard(risk, latest) {
+  if (risk.riskLevel === 'high') {
+    return {
+      title: '现在优先安全',
+      body: '当前记录里有高风险信号。请优先联系现实中的支持，而不是继续独自扛着。'
+    };
+  }
+  if (risk.riskLevel === 'medium') {
+    return {
+      title: '最近值得更密切关注',
+      body: '你最近的状态有一些值得留意的变化，建议尽快和医生、家属或信任的人同步。'
+    };
+  }
+  return {
+    title: '继续稳定记录',
+    body: latest.sleepHours <= 5 ? '现在最值得优先守住的是睡眠和节律。' : '先继续记录、规律生活，并按医嘱治疗。'
   };
 }
 

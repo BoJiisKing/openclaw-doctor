@@ -167,6 +167,10 @@
       document.getElementById('dashboard').innerHTML = `
         <h2>${esc(data.modeTitle || '支持模式')}</h2>
         <p>${esc(data.modeIntro || '')}</p>
+        <div class="card" style="padding:12px; background:#f8fafc; box-shadow:none; margin-top:12px;">
+          <strong>${esc(data.statusCard.title)}</strong>
+          <p class="small muted" style="margin:8px 0 0;">${esc(data.statusCard.body)}</p>
+        </div>
         <p><strong>当前风险等级：</strong><span class="${riskCls}">${esc(data.risk.riskLevel)}</span></p>
         <p><strong>触发标记：</strong>${data.risk.flags.length ? data.risk.flags.map(esc).join('、') : '无'}</p>
         <p>${esc(data.crisisMessage)}</p>
@@ -319,6 +323,12 @@
     window.deleteMedication = deleteMedication;
     window.editCheckin = editCheckin;
     window.editMedication = editMedication;
+    window.resetCheckinForm = resetCheckinForm;
+    window.resetMedForm = resetMedForm;
+  </script>
+</body>
+</html>
+ion;
     window.resetCheckinForm = resetCheckinForm;
     window.resetMedForm = resetMedForm;
   </script>

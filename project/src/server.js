@@ -23,7 +23,9 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && url.pathname === '/api/history') {
       const data = readData();
-      return sendJson(res, 200, data.checkins || []);
+      const days = Number(url.searchParams.get('days') || 0);
+      const list = days > 0 ? filterCheckinsByDays(data.checkins || [], days) : (data.checkins || []);
+      return sendJson(res, 200, list);
     }
 
     if (req.method === 'GET' && url.pathname === '/api/summary.txt') {
