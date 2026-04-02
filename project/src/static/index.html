@@ -41,10 +41,10 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="card">
+    <div class="hero">
       <h1>Mind Harbor / 心港</h1>
-      <p class="muted">一个面向精神障碍康复支持场景的安全优先型辅助系统原型。</p>
-      <div>
+      <p>一个面向精神障碍康复支持场景的安全优先型辅助系统原型。它的目标不是替代医生，而是在混乱的时候给人一点结构、一点节律、和一点现实可执行的下一步。</p>
+      <div style="margin-top:16px;">
         <span class="tag">状态追踪</span>
         <span class="tag">服药提醒</span>
         <span class="tag">危机支持</span>
@@ -306,6 +306,56 @@
       resetCheckinForm();
       await loadDashboard();
       await loadHistory();
+    });
+
+    document.getElementById('medForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const body = Object.fromEntries(fd.entries());
+      const editingId = body.editingId;
+      delete body.editingId;
+      if (editingId) {
+        await fetchJson(`/api/medications/${editingId}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+        });
+      } else {
+        await fetchJson('/api/medications', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+        });
+      }
+      resetMedForm();
+      await loadDashboard();
+    });
+
+    document.getElementById('downloadSummary').addEventListener('click', async () => {
+      const text = await fetch('/api/summary.txt').then(r => r.text());
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'visit-summary.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    loadDashboard();
+    loadHistory();
+    window.deleteCheckin = deleteCheckin;
+    window.deleteMedication = deleteMedication;
+    window.editCheckin = editCheckin;
+    window.editMedication = editMedication;
+    window.resetCheckinForm = resetCheckinForm;
+    window.resetMedForm = resetMedForm;
+  </script>
+</body>
+</html>
+ion;
+    window.resetCheckinForm = resetCheckinForm;
+    window.resetMedForm = resetMedForm;
+  </script>
+</body>
+</html>
+ory();
     });
 
     document.getElementById('medForm').addEventListener('submit', async (e) => {
