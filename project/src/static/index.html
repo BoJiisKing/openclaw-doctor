@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mind Harbor Demo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f5f7fb; color: #1f2937; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 24px; }
+    .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.05); }
+    h1,h2 { margin: 0 0 12px; }
+    .tag { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #e5eefc; margin-right: 8px; }
+    .risk-low { color: #166534; }
+    .risk-medium { color: #b45309; }
+    .risk-high { color: #b91c1c; }
+    ul { padding-left: 20px; }
+    .muted { color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Mind Harbor / 心港</h1>
+      <p class="muted">一个面向精神障碍康复支持场景的安全优先型辅助系统原型。</p>
+      <div>
+        <span class="tag">状态追踪</span>
+        <span class="tag">服药提醒</span>
+        <span class="tag">危机支持</span>
+        <span class="tag">复诊摘要</span>
+      </div>
+    </div>
+
+    <div id="app"></div>
+  </div>
+
+  <script>
+    async function main() {
+      const res = await fetch('/api/dashboard');
+      const data = await res.json();
+      const riskCls = `risk-${data.risk.riskLevel}`;
+      document.getElementById('app').innerHTML = `
+        <div class="card">
+          <h2>${data.modeTitle}</h2>
+          <p>${data.modeIntro}</p>
+        </div>
+        <div class="card">
+          <h2>当前风险等级：<span class="${riskCls}">${data.risk.riskLevel}</span></h2>
+          <p>触发标记：${data.risk.flags.join('、') || '无'}</p>
+          <p>${data.crisisMessage}</p>
+        </div>
+        <div class="card">
+          <h2>支持建议</h2>
+          <p>${data.support.message}</p>
+          <ul>${data.support.actions.map(x => `<li>${x}</li>`).join('')}</ul>
+        </div>
+        <div class="card">
+          <h2>今日药物</h2>
+          <ul>${data.medications.map(m => `<li>${m.name}：${m.schedule.join(', ')}（${m.notes}）</li>`).join('')}</ul>
+        </div>
+        <div class="card">
+          <h2>复诊摘要</h2>
+          <ul>
+            <li>平均心情：${data.summary.averageMood}</li>
+            <li>平均睡眠：${data.summary.averageSleepHours} 小时</li>
+            <li>记录到的漏服次数：${data.summary.medicationMissesReported}</li>
+            <li>有自伤想法的记录天数：${data.summary.daysWithSelfHarmThoughts}</li>
+          </ul>
+          <p>${data.summary.clinicianPrompt}</p>
+        </div>
+      `;
+    }
+    main();
+  </script>
+</body>
+</html>
