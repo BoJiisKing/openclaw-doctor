@@ -24,6 +24,7 @@ export function buildDashboard(data) {
     recentCheckins: data.checkins?.slice(0, 10) || [],
     trends: buildTrends(data.checkins || []),
     statusCard: buildStatusCard(risk, latest),
+    dailyInsight: buildDailyInsight({ userMode: latest.mode, risk, latestCheckin: latest }),
     recommendedResources: recommendResources({ userMode: latest.mode, risk, latestCheckin: latest }, trustedResources)
   };
 }

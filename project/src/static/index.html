@@ -204,6 +204,11 @@
         <p><strong>紧急联系人：</strong>${esc(data.settings.emergencyContact || '未设置')}</p>
       `;
 
+      document.getElementById('dailyInsight').innerHTML = `
+        <h2>${esc(data.dailyInsight.title)}</h2>
+        <p>${esc(data.dailyInsight.body)}</p>
+      `;
+
       document.getElementById('recommendedResources').innerHTML = `
         <h2>根据当前状态推荐阅读</h2>
         <ul>${(data.recommendedResources || []).map(item => `<li><a href="${esc(item.url)}" target="_blank" rel="noreferrer">${esc(item.title)}</a>：${esc(item.reason)}</li>`).join('')}</ul>
