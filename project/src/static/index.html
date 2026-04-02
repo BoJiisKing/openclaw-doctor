@@ -110,6 +110,7 @@
         <div class="card" id="focusMode"></div>
         <div class="card" id="dailyInsight"></div>
         <div class="card" id="editorialFeed"></div>
+        <div class="card" id="recoverySignals"></div>
         <div class="card" id="recommendedResources"></div>
         <div class="card" id="trends"></div>
         <div class="card">
@@ -279,6 +280,11 @@
             <p>${esc(card.body)}</p>
           </article>
         `).join('')}</div>
+      `;
+
+      document.getElementById('recoverySignals').innerHTML = `
+        <h2>${esc(data.recoverySignals.title)}</h2>
+        <ul>${(data.recoverySignals.items || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
       `;
 
       document.getElementById('recommendedResources').innerHTML = `

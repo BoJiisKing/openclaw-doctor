@@ -6,6 +6,7 @@ import { recommendResources } from './recommend.js';
 import { buildDailyInsight } from './daily.js';
 import { buildEditorialCards } from './editorial.js';
 import { buildFocusMode } from './simplicity.js';
+import { buildRecoverySignals } from './recovery.js';
 
 export function buildDashboard(data) {
   const latest = data.checkins?.[0] || fallbackCheckin(data.settings?.defaultMode || data.user?.mode || 'depression');
@@ -15,6 +16,7 @@ export function buildDashboard(data) {
   const dailyInsight = buildDailyInsight({ userMode: latest.mode, risk, latestCheckin: latest });
   const recommendedResources = recommendResources({ userMode: latest.mode, risk, latestCheckin: latest }, trustedResources);
   const focusMode = buildFocusMode({ risk, dailyInsight, support, recommendedResources });
+  const recoverySignals = buildRecoverySignals({ latestCheckin: latest, recentCheckins: data.checkins || [] });
 
   return {
     userMode: latest.mode,
@@ -33,6 +35,7 @@ export function buildDashboard(data) {
     dailyInsight,
     recommendedResources,
     focusMode,
+    recoverySignals,
     editorialCards: buildEditorialCards({ userMode: latest.mode, risk, latestCheckin: latest, dailyInsight, recommendedResources })
   };
 }

@@ -9,6 +9,7 @@ import { normalizeCheckin, normalizeMedication } from './validate.js';
 import { buildVisitSummaryText } from './summary.js';
 import { filterCheckinsByDays } from './filter.js';
 import { normalizeSettings } from './settings.js';
+import { attachReadingLoad } from './resource-load.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,6 +29,10 @@ const server = http.createServer(async (req, res) => {
       const days = Number(url.searchParams.get('days') || 0);
       const list = days > 0 ? filterCheckinsByDays(data.checkins || [], days) : (data.checkins || []);
       return sendJson(res, 200, list);
+    }
+
+    if (req.method === 'GET' && url.pathname === '/api/resources') {
+      return sendJson(res, 200, attachReadingLoad(trustedResources));
     }
 
     if (req.method === 'GET' && url.pathname === '/api/settings') {
