@@ -38,8 +38,9 @@ export function evaluateRisk(checkin) {
   }
 
   let riskLevel = 'low';
-  if (score >= 8) riskLevel = 'high';
-  else if (score >= 4) riskLevel = 'medium';
+  if (checkin.selfHarmThoughts === 'active') riskLevel = 'high';
+  else if (score >= 8) riskLevel = 'high';
+  else if (score >= 3) riskLevel = 'medium';
 
   return { riskLevel, score, flags };
 }

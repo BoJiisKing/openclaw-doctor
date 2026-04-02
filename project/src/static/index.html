@@ -23,11 +23,14 @@
     textarea { min-height: 88px; resize: vertical; }
     button { background: #2563eb; color: white; border: none; cursor: pointer; }
     button.secondary { background: #e5e7eb; color: #111827; }
+    button.danger { background: #b91c1c; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .small { font-size: 13px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: top; }
     .pill { display: inline-block; padding: 2px 8px; background: #eef2ff; border-radius: 999px; font-size: 12px; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    a.linkbtn { display: inline-block; text-decoration: none; background: #fee2e2; color: #991b1b; padding: 8px 12px; border-radius: 10px; }
   </style>
 </head>
 <body>
@@ -48,6 +51,10 @@
       <div>
         <div class="card" id="dashboard"></div>
         <div class="card">
+          <div class="actions" style="margin-bottom:12px;">
+            <button class="secondary" id="downloadSummary">导出复诊摘要</button>
+            <a class="linkbtn" href="/crisis">打开危机支持页</a>
+          </div>
           <h2>最近记录</h2>
           <div id="history"></div>
         </div>
@@ -120,19 +127,21 @@
     async function loadDashboard() {
       const data = await fetchJson('/api/dashboard');
       const riskCls = `risk-${data.risk.riskLevel}`;
+      const crisisLink = data.risk.riskLevel === 'high' ? '<p><a class="linkbtn" href="/crisis">立即查看危机支持</a></p>' : '';
       document.getElementById('dashboard').innerHTML = `
         <h2>${esc(data.modeTitle || '支持模式')}</h2>
         <p>${esc(data.modeIntro || '')}</p>
         <p><strong>当前风险等级：</strong><span class="${riskCls}">${esc(data.risk.riskLevel)}</span></p>
         <p><strong>触发标记：</strong>${data.risk.flags.length ? data.risk.flags.map(esc).join('、') : '无'}</p>
         <p>${esc(data.crisisMessage)}</p>
+        ${crisisLink}
 
         <h3>支持建议</h3>
         <p>${esc(data.support.message)}</p>
         <ul>${data.support.actions.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
 
         <h3>药物</h3>
-        <ul>${data.medications.map(m => `<li>${esc(m.name)}：${esc((m.schedule || []).join(', '))}（${esc(m.notes || '')}）</li>`).join('')}</ul>
+        <ul>${data.medications.map(m => `<li>${esc(m.name)}：${esc((m.schedule || []).join(', '))}（${esc(m.notes || '')}） <button class="danger small" onclick="deleteMedication('${esc(m.id)}')">删除</button></li>`).join('')}</ul>
 
         <h3>复诊摘要</h3>
         <ul>
@@ -154,7 +163,7 @@
       document.getElementById('history').innerHTML = `
         <table>
           <thead>
-            <tr><th>时间</th><th>模式</th><th>心情</th><th>焦虑</th><th>睡眠</th><th>风险线索</th><th>备注</th></tr>
+            <tr><th>时间</th><th>模式</th><th>心情</th><th>焦虑</th><th>睡眠</th><th>风险线索</th><th>备注</th><th>操作</th></tr>
           </thead>
           <tbody>
             ${items.map(item => `
@@ -166,11 +175,23 @@
                 <td>${esc(item.sleepHours)}</td>
                 <td>${esc(item.selfHarmThoughts)}</td>
                 <td>${esc(item.notes || '')}</td>
+                <td><button class="danger small" onclick="deleteCheckin('${esc(item.id)}')">删除</button></td>
               </tr>
             `).join('')}
           </tbody>
         </table>
       `;
+    }
+
+    async function deleteCheckin(id) {
+      await fetch(`/api/checkins/${id}`, { method: 'DELETE' });
+      await loadDashboard();
+      await loadHistory();
+    }
+
+    async function deleteMedication(id) {
+      await fetch(`/api/medications/${id}`, { method: 'DELETE' });
+      await loadDashboard();
     }
 
     document.getElementById('checkinForm').addEventListener('submit', async (e) => {
@@ -200,8 +221,21 @@
       await loadDashboard();
     });
 
+    document.getElementById('downloadSummary').addEventListener('click', async () => {
+      const text = await fetch('/api/summary.txt').then(r => r.text());
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'visit-summary.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
     loadDashboard();
     loadHistory();
+    window.deleteCheckin = deleteCheckin;
+    window.deleteMedication = deleteMedication;
   </script>
 </body>
 </html>

@@ -3,9 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDashboard } from './app.js';
-import { readData, addCheckin, addMedication, ensureDataFile } from './storage.js';
+import { readData, addCheckin, addMedication, ensureDataFile, deleteMedication, deleteCheckin } from './storage.js';
 import { readJsonBody, sendJson } from './http.js';
 import { normalizeCheckin, normalizeMedication } from './validate.js';
+import { buildVisitSummaryText } from './summary.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,35 +14,62 @@ ensureDataFile();
 
 const server = http.createServer(async (req, res) => {
   try {
-    if (req.method === 'GET' && req.url === '/api/dashboard') {
+    const url = new URL(req.url, 'http://localhost');
+
+    if (req.method === 'GET' && url.pathname === '/api/dashboard') {
       const data = readData();
       return sendJson(res, 200, buildDashboard(data));
     }
 
-    if (req.method === 'GET' && req.url === '/api/history') {
+    if (req.method === 'GET' && url.pathname === '/api/history') {
       const data = readData();
       return sendJson(res, 200, data.checkins || []);
     }
 
-    if (req.method === 'POST' && req.url === '/api/checkins') {
+    if (req.method === 'GET' && url.pathname === '/api/summary.txt') {
+      const data = readData();
+      const text = buildVisitSummaryText(buildDashboard(data));
+      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+      return res.end(text);
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/checkins') {
       const body = await readJsonBody(req);
       const data = addCheckin(normalizeCheckin(body));
       return sendJson(res, 201, buildDashboard(data));
     }
 
-    if (req.method === 'POST' && req.url === '/api/medications') {
+    if (req.method === 'DELETE' && url.pathname.startsWith('/api/checkins/')) {
+      const id = url.pathname.split('/').pop();
+      const data = deleteCheckin(id);
+      return sendJson(res, 200, buildDashboard(data));
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/medications') {
       const body = await readJsonBody(req);
       const data = addMedication(normalizeMedication(body));
       return sendJson(res, 201, data.medications);
     }
 
-    if (req.method === 'GET' && req.url === '/api/medications') {
+    if (req.method === 'GET' && url.pathname === '/api/medications') {
       const data = readData();
       return sendJson(res, 200, data.medications || []);
     }
 
-    if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
+    if (req.method === 'DELETE' && url.pathname.startsWith('/api/medications/')) {
+      const id = url.pathname.split('/').pop();
+      const data = deleteMedication(id);
+      return sendJson(res, 200, data.medications);
+    }
+
+    if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
       const html = fs.readFileSync(path.join(__dirname, 'static', 'index.html'), 'utf8');
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      return res.end(html);
+    }
+
+    if (req.method === 'GET' && url.pathname === '/crisis') {
+      const html = fs.readFileSync(path.join(__dirname, 'static', 'crisis.html'), 'utf8');
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       return res.end(html);
     }

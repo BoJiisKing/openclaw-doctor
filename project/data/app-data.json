@@ -24,21 +24,6 @@
   ],
   "checkins": [
     {
-      "id": "c_1775114480048",
-      "createdAt": "2026-04-02T07:21:20.048Z",
-      "mode": "anxiety",
-      "mood": 4,
-      "anxiety": 8,
-      "energy": 3,
-      "sleepHours": 5,
-      "appetite": 4,
-      "selfHarmThoughts": "none",
-      "impulsivity": 1,
-      "elevatedMood": 0,
-      "medicationMisses7d": 1,
-      "notes": "测试新增记录"
-    },
-    {
       "id": "c_1775114468660",
       "createdAt": "2026-04-02T07:21:08.660Z",
       "mode": "anxiety",

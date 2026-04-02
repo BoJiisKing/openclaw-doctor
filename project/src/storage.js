@@ -67,3 +67,17 @@ export function addMedication(medication) {
   writeData(data);
   return data;
 }
+
+export function deleteMedication(id) {
+  const data = readData();
+  data.medications = data.medications.filter(item => item.id !== id);
+  writeData(data);
+  return data;
+}
+
+export function deleteCheckin(id) {
+  const data = readData();
+  data.checkins = data.checkins.filter(item => item.id !== id);
+  writeData(data);
+  return data;
+}
